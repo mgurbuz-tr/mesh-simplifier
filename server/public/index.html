@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mesh Studio — 3D Simplify</title>
+    <script type="module" crossorigin src="/assets/index-DSdYaqyK.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-eOjEmwXr.css">
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="brand"><span class="logo">◆</span> Mesh Studio</div>
+        <div class="filemeta">
+          <span id="filename" class="filename">Dosya yüklenmedi</span>
+        </div>
+        <a class="ghost-link" href="https://github.com/zeux/meshoptimizer" target="_blank" rel="noopener">
+          QEM · meshoptimizer
+        </a>
+      </header>
+
+      <main class="layout">
+        <!-- 3D Viewport -->
+        <section class="viewport" id="viewport">
+          <canvas id="canvas"></canvas>
+
+          <!-- Drag & drop / picker (shown until a file is loaded) -->
+          <div class="dropzone" id="dropzone">
+            <div class="dropzone-inner">
+              <div class="dz-icon">⬆</div>
+              <h2>3D Mesh'i buraya sürükle</h2>
+              <p>veya bir dosya seç</p>
+              <button class="btn primary" id="pick-btn" type="button">Dosya Seç</button>
+              <input id="file-input" type="file" accept=".glb,.gltf,.obj,.stl,.ply" hidden />
+              <div class="formats">GLB · GLTF · OBJ · STL · PLY — 200 MB'a kadar</div>
+            </div>
+          </div>
+
+          <!-- Floating triangle/vertex badge -->
+          <div class="viewport-badge" id="viewport-badge" hidden></div>
+
+          <!-- Loading overlay -->
+          <div class="loading" id="loading" hidden>
+            <div class="spinner"></div>
+            <div class="loading-text" id="loading-text">İşleniyor…</div>
+          </div>
+        </section>
+
+        <!-- Parameter panel -->
+        <aside class="panel">
+          <div class="panel-section">
+            <h3>Basitleştirme</h3>
+            <div class="slider-row">
+              <label for="ratio">Korunacak üçgen</label>
+              <span class="slider-value" id="ratio-value">100%</span>
+            </div>
+            <input id="ratio" class="slider" type="range" min="1" max="100" value="100" step="1" disabled />
+            <p class="hint">Slider'ı bırakınca sunucuda QEM ile yeniden işlenir.</p>
+          </div>
+
+          <div class="panel-section">
+            <h3>İstatistik</h3>
+            <table class="stats">
+              <thead>
+                <tr><th></th><th>Orijinal</th><th>Sonuç</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Üçgen</td><td id="orig-tris">—</td><td id="new-tris">—</td></tr>
+                <tr><td>Vertex</td><td id="orig-verts">—</td><td id="new-verts">—</td></tr>
+                <tr><td>Azalma</td><td>—</td><td id="reduction">—</td></tr>
+              </tbody>
+            </table>
+            <p class="hint" id="achieved-note" hidden></p>
+          </div>
+
+          <div class="panel-section">
+            <h3>İndir</h3>
+            <div class="download-row">
+              <button class="btn" id="dl-glb" type="button" disabled>GLB</button>
+              <button class="btn" id="dl-obj" type="button" disabled>OBJ + PNG (.zip)</button>
+            </div>
+            <p class="hint">GLB: tekstür gömülü tek dosya. OBJ: .obj + .mtl + .png paketi.</p>
+          </div>
+
+          <div class="panel-section muted">
+            <h3>Yeni dosya</h3>
+            <button class="btn block" id="reset-btn" type="button" disabled>Başka mesh yükle</button>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+  </body>
+</html>
