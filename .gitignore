@@ -1,0 +1,9 @@
+node_modules/
+server/public/
+server/tmp/
+server/cache/
+test-assets/
+test-out/
+*.log
+.DS_Store
+.env
