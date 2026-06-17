@@ -27,10 +27,10 @@
             <div class="dropzone-inner">
               <div class="dz-icon">⬆</div>
               <h2>3D Mesh'i buraya sürükle</h2>
-              <p>veya bir dosya seç</p>
+              <p>veya dosya(ları) seç — OBJ ile birlikte PNG/MTL'sini de seçebilirsin</p>
               <button class="btn primary" id="pick-btn" type="button">Dosya Seç</button>
-              <input id="file-input" type="file" accept=".glb,.gltf,.obj,.stl,.ply" hidden />
-              <div class="formats">GLB · GLTF · OBJ · STL · PLY — 200 MB'a kadar</div>
+              <input id="file-input" type="file" multiple accept=".glb,.gltf,.obj,.stl,.ply,.png,.jpg,.jpeg,.mtl,.zip" hidden />
+              <div class="formats">GLB · GLTF · OBJ (+PNG/MTL) · STL · PLY · ZIP — 200 MB'a kadar</div>
             </div>
           </div>
 

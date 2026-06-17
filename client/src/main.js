@@ -36,23 +36,25 @@ setupDropzone(
     fileInput: document.getElementById('file-input'),
     pickBtn: document.getElementById('pick-btn'),
   },
-  handleFile
+  handleFiles
 );
 
-async function handleFile(file) {
+async function handleFiles(files) {
   resetState();
   showDropzone(dropzone, false);
-  els.filename.textContent = file.name;
+  const meshFile = files.find((f) => /\.(glb|gltf|obj|stl|ply|zip)$/i.test(f.name));
+  els.filename.textContent = meshFile ? meshFile.name : `${files.length} dosya`;
   setLoading(els, true, 'Yükleniyor… 0%');
 
   try {
-    const res = await uploadFile(file, (pct) => {
+    const res = await uploadFile(files, (pct) => {
       setLoading(els, true, `Yükleniyor… ${Math.round(pct * 100)}%`);
     });
     setLoading(els, true, 'Mesh ayrıştırılıyor…');
 
     state.jobId = res.jobId;
     state.original = res.original;
+    els.filename.textContent = res.textured ? `${res.name}  ·  dokulu` : res.name;
 
     // İlk görüntü: sunucunun ürettiği hafif preview-LOD.
     const buf = await fetchViewGLB(state.jobId, 'preview');

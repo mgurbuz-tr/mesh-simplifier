@@ -27,7 +27,7 @@ router.get('/:jobId', async (req, res) => {
       touchJob(jobId);
 
       if (format === 'glb') {
-        const bytes = await toGLB(doc);
+        const bytes = await toGLB(doc, { compress: true });
         res.setHeader('Content-Type', 'model/gltf-binary');
         res.setHeader('Content-Disposition', `attachment; filename="${base}.glb"`);
         res.send(Buffer.from(bytes));

@@ -28,7 +28,7 @@ router.post('/', async (req, res) => {
 
       // Viewport sürümü: gerekirse görüntüleme bütçesine clamp (stats'ı etkilemez).
       const clamped = await clampForDisplay(doc);
-      const viewBytes = await toGLB(doc);
+      const viewBytes = await toGLB(doc, { compress: true });
       await fs.writeFile(path.join(jobDir(jobId), 'view.glb'), Buffer.from(viewBytes));
       touchJob(jobId);
 

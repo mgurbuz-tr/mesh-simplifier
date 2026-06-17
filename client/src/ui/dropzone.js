@@ -1,33 +1,42 @@
-// Drag & drop + dosya seçici. Geçerli bir dosya seçilince onFile(file) çağrılır.
+// Drag & drop + dosya seçici. Birden çok dosya (OBJ + PNG + MTL) veya tek .zip
+// kabul eder. Geçerli bir set seçilince onFiles(File[]) çağrılır.
 
-const ACCEPTED = ['.glb', '.gltf', '.obj', '.stl', '.ply'];
+const MESH_EXTS = ['.glb', '.gltf', '.obj', '.stl', '.ply'];
+const ALL_EXTS = [...MESH_EXTS, '.png', '.jpg', '.jpeg', '.mtl', '.zip'];
 
-function hasAcceptedExt(name) {
-  const lower = name.toLowerCase();
-  return ACCEPTED.some((ext) => lower.endsWith(ext));
-}
+const extOf = (name) => {
+  const i = name.lastIndexOf('.');
+  return i < 0 ? '' : name.slice(i).toLowerCase();
+};
+const isMesh = (name) => MESH_EXTS.includes(extOf(name));
+const isZip = (name) => extOf(name) === '.zip';
+const isAccepted = (name) => ALL_EXTS.includes(extOf(name));
 
 /**
  * @param {object} els  { dropzone, fileInput, pickBtn }
- * @param {(file:File)=>void} onFile
+ * @param {(files:File[])=>void} onFiles
  */
-export function setupDropzone({ dropzone, fileInput, pickBtn }, onFile) {
-  const handle = (file) => {
-    if (!file) return;
-    if (!hasAcceptedExt(file.name)) {
-      alert(`Desteklenmeyen format. Kabul edilenler: ${ACCEPTED.join(', ')}`);
+export function setupDropzone({ dropzone, fileInput, pickBtn }, onFiles) {
+  const handle = (fileList) => {
+    const files = Array.from(fileList || []).filter((f) => isAccepted(f.name));
+    if (files.length === 0) {
+      alert(`Desteklenen formatlar: ${ALL_EXTS.join(', ')}`);
       return;
     }
-    onFile(file);
+    // En az bir mesh dosyası ya da bir .zip olmalı.
+    if (!files.some((f) => isMesh(f.name) || isZip(f.name))) {
+      alert('Bir mesh dosyası (.glb/.gltf/.obj/.stl/.ply) veya .zip seçmelisin.');
+      return;
+    }
+    onFiles(files);
   };
 
   pickBtn.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', () => {
-    handle(fileInput.files[0]);
-    fileInput.value = ''; // aynı dosyayı tekrar seçebilmek için
+    handle(fileInput.files);
+    fileInput.value = ''; // aynı dosyaları tekrar seçebilmek için
   });
 
-  // Sürükleme tüm viewport üzerinde çalışsın.
   const target = dropzone.parentElement;
   ['dragenter', 'dragover'].forEach((ev) =>
     target.addEventListener(ev, (e) => {
@@ -42,10 +51,7 @@ export function setupDropzone({ dropzone, fileInput, pickBtn }, onFile) {
       dropzone.classList.remove('dragover');
     })
   );
-  target.addEventListener('drop', (e) => {
-    const file = e.dataTransfer?.files?.[0];
-    handle(file);
-  });
+  target.addEventListener('drop', (e) => handle(e.dataTransfer?.files));
 }
 
 export function showDropzone(dropzone, show) {

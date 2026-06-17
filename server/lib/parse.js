@@ -8,14 +8,17 @@ import { getIO } from './io.js';
 /**
  * Herhangi bir desteklenen formatı tek bir gltf-transform Document'a çevirir.
  * GLB/GLTF native okunur; OBJ/STL/PLY three loader.parse ile (DOM gerekmez) parse edilip
- * Document'a dönüştürülür. Böylece tek bir simplify hattı kullanılır.
+ * Document'a dönüştürülür.
  *
  * @param {string} filePath
  * @param {string} ext  '.glb' | '.gltf' | '.obj' | '.stl' | '.ply'
+ * @param {object} [opts]
+ * @param {{data:Uint8Array, mime:string}|null} [opts.texture]  OBJ için baseColor dokusu (PNG/JPG)
  */
-export async function parseToDocument(filePath, ext) {
+export async function parseToDocument(filePath, ext, opts = {}) {
   ext = ext.toLowerCase();
   if (ext === '.glb' || ext === '.gltf') {
+    // GLB/GLTF kendi materyal/dokusunu taşır — harici texture'ı yok say.
     const io = await getIO();
     return io.read(filePath);
   }
@@ -23,7 +26,9 @@ export async function parseToDocument(filePath, ext) {
   if (geometries.length === 0) {
     throw new Error('Dosyada geometri bulunamadı');
   }
-  return geometriesToDocument(geometries);
+  // Doku yalnızca UV'si olan formatta (OBJ) anlamlı; STL/PLY'de UV yoktur.
+  const texture = ext === '.obj' ? opts.texture || null : null;
+  return geometriesToDocument(geometries, texture);
 }
 
 function toArrayBuffer(buf) {
@@ -49,11 +54,19 @@ async function loadThreeGeometries(filePath, ext) {
   throw new Error(`Desteklenmeyen format: ${ext}`);
 }
 
-/** three.js BufferGeometry listesini gltf-transform Document'a çevirir. */
-function geometriesToDocument(geometries) {
+/**
+ * three.js BufferGeometry listesini gltf-transform Document'a çevirir.
+ * @param {{data:Uint8Array, mime:string}|null} texture  varsa baseColor dokusu olarak gömülür
+ */
+function geometriesToDocument(geometries, texture = null) {
   const doc = new Document();
   const buffer = doc.createBuffer();
   const scene = doc.createScene();
+
+  // Doku tek kez oluşturulur, tüm primitive'ler paylaşır.
+  const texObj = texture
+    ? doc.createTexture('albedo').setImage(texture.data).setMimeType(texture.mime)
+    : null;
 
   for (const geom of geometries) {
     const pos = geom.getAttribute?.('position') || geom.attributes?.position;
@@ -88,10 +101,14 @@ function geometriesToDocument(geometries) {
     }
 
     const mat = doc
-      .createMaterial('default')
-      .setBaseColorFactor([0.82, 0.82, 0.85, 1])
+      .createMaterial('material')
       .setRoughnessFactor(0.85)
       .setMetallicFactor(0.0);
+    if (texObj && uv) {
+      mat.setBaseColorFactor([1, 1, 1, 1]).setBaseColorTexture(texObj);
+    } else {
+      mat.setBaseColorFactor([0.82, 0.82, 0.85, 1]);
+    }
     prim.setMaterial(mat);
 
     const mesh = doc.createMesh().addPrimitive(prim);

@@ -4,16 +4,16 @@
 const API = '/api';
 
 /**
- * Dosyayı sunucuya yükler. Sunucu parse eder, weld'ler, önbelleğe alır ve
- * orijinal istatistikleri döndürür.
- * @param {File} file
+ * Dosya(ları) sunucuya yükler (OBJ + PNG + MTL veya tek .zip). Sunucu parse eder,
+ * weld'ler, önbelleğe alır ve orijinal istatistikleri döndürür.
+ * @param {File[]} files
  * @param {(pct:number)=>void} [onProgress]
- * @returns {Promise<{jobId:string, original:{triangles:number,vertices:number}, name:string}>}
+ * @returns {Promise<{jobId:string, original:{triangles:number,vertices:number}, name:string, textured:boolean}>}
  */
-export function uploadFile(file, onProgress) {
+export function uploadFile(files, onProgress) {
   return new Promise((resolve, reject) => {
     const form = new FormData();
-    form.append('mesh', file);
+    for (const f of files) form.append('mesh', f);
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${API}/upload`);

@@ -1,11 +1,22 @@
 import JSZip from 'jszip';
+import { meshopt } from '@gltf-transform/functions';
+import { MeshoptEncoder } from 'meshoptimizer';
 import { getIO } from './io.js';
 
 // ---------------------------------------------------------------------------
 // GLB: gltf-transform NodeIO ile binary yaz (materyal + tekstür gömülü tek dosya).
+//
+// compress=true → EXT_meshopt_compression (reorder + quantize + meshopt).
+// KRİTİK: Sıkıştırılmış bir girdiyi (Draco/meshopt) açıp sıkıştırmasız yazarsak
+// dosya orijinalden BÜYÜK çıkar. Bu yüzden çıktıları (download + viewport) yeniden
+// sıkıştırıyoruz. İstemci tarafı GLTFLoader meshopt decoder ile bunları çözer.
 // ---------------------------------------------------------------------------
-export async function toGLB(document) {
+export async function toGLB(document, { compress = false } = {}) {
   const io = await getIO();
+  if (compress) {
+    await MeshoptEncoder.ready;
+    await document.transform(meshopt({ encoder: MeshoptEncoder, level: 'high' }));
+  }
   return io.writeBinary(document); // Uint8Array
 }
 
